@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Client • Cloudpusat54</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { background:#0d1117; color:white; font-family:Arial, sans-serif; padding:20px 12px 80px; margin:0; }
+.dashboard-box {
+  max-width:650px; margin:auto; background:#161b22; padding:20px 18px;
+  border-radius:12px; border:1px solid #30363d; margin-top:16px;
+}
+.section-title { font-size:18px; font-weight:bold; margin-bottom:8px; }
+.info-box {
+  background:#1b1f24; padding:10px 12px; border-radius:10px;
+  border:1px solid #30363d; margin-bottom:10px; font-size:14px;
+}
+.info-title { font-weight:bold; color:#58a6ff; margin-bottom:2px; }
+.btn {
+  display:block; padding:12px; background:#238636; color:white;
+  text-align:center; border-radius:8px; margin-top:10px;
+  text-decoration:none; font-size:14px; font-weight:bold;
+}
+.btn-wa { background:#25D366; }
+.btn-clear { background:#b91c1c; }
+.small { font-size:12px; color:#8b949e; }
+
+/* Floating menu */
+.floating-menu {
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#010409;
+  border-top:1px solid #21262d;
+  display:flex;
+  justify-content:space-around;
+  padding:8px 0 10px;
+  z-index:9999;
+}
+.floating-menu a {
+  color:#ffffff;
+  text-decoration:none;
+  font-size:11px;
+  text-align:center;
+}
+.floating-menu span.emoji {
+  display:block;
+  font-size:18px;
+  margin-bottom:2px;
+}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<script>checkLogin();</script>
+
+<div class="dashboard-box">
+  <h2>Dashboard Client</h2>
+  <div class="small">Ringkasan layanan & invoice terakhir Anda.</div>
+
+  <div class="info-box">
+    <div class="info-title">Invoice ID</div>
+    <div id="inv-id">-</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">Produk</div>
+    <div id="inv-product">-</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">Harga</div>
+    <div id="inv-price">-</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">Status Pembayaran</div>
+    <div id="inv-status">Belum Bayar</div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">Data Client</div>
+    <div id="inv-client">-</div>
+  </div>
+
+  <a href="payment.html" class="btn">Lanjutkan Pembayaran</a>
+  <a href="https://wa.me/6285808584252?text=Halo%20Admin%20Cloudpusat54" class="btn btn-wa">Chat Admin</a>
+  <a href="history.html" class="btn">Riwayat Pesanan</a>
+  <a href="profile.html" class="btn">Profile Akun</a>
+  <a href="javascript:void(0)" onclick="logoutClient()" class="btn btn-clear">Hapus Data Client</a>
+</div>
+
+<div class="floating-menu">
+  <a href="index.html"><span class="emoji">🏠</span>Home</a>
+  <a href="order.html"><span class="emoji">📝</span>Order</a>
+  <a href="dashboard.html"><span class="emoji">📊</span>Dashboard</a>
+</div>
+
+<script>
+function loadDashboard(){
+  document.getElementById('inv-id').textContent = localStorage.getItem('invoice_id') || '-';
+  document.getElementById('inv-product').textContent = localStorage.getItem('invoice_product') || '-';
+  document.getElementById('inv-price').textContent = localStorage.getItem('invoice_price') || '-';
+  document.getElementById('inv-status').textContent = localStorage.getItem('invoice_status') || 'Belum Bayar';
+  const name = localStorage.getItem('clientName') || '-';
+  const email = localStorage.getItem('clientEmail') || '-';
+  const wa = localStorage.getItem('clientWa') || '-';
+  document.getElementById('inv-client').textContent = name + ' | ' + email + ' | ' + wa;
+}
+function logoutClient(){
+  if(confirm('Hapus data client & invoice dari perangkat ini?')){
+    localStorage.removeItem('invoice_id');
+    localStorage.removeItem('invoice_product');
+    localStorage.removeItem('invoice_price');
+    localStorage.removeItem('invoice_status');
+    localStorage.removeItem('clientName');
+    localStorage.removeItem('clientEmail');
+    localStorage.removeItem('clientWa');
+    loadDashboard();
+  }
+}
+loadDashboard();
+</script>
+
+</body>
+</html>
