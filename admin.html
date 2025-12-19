@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel • Cloudpusat54</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { background:#0d1117; color:white; font-family:Arial, sans-serif; padding:20px 12px 80px; margin:0; }
+
+.card {
+  max-width:600px; margin:auto; background:#161b22; padding:22px 18px;
+  border-radius:12px; border:1px solid #30363d; margin-top:24px;
+}
+label { font-size:14px; font-weight:bold; }
+input {
+  width:100%; padding:10px; margin-top:8px; border-radius:6px; border:none;
+}
+.btn {
+  display:block; margin-top:12px; padding:10px;
+  background:#238636; color:white; text-align:center;
+  border-radius:8px; text-decoration:none; font-weight:bold;
+}
+.btn:hover { background:#2ea043; }
+
+/* table */
+.table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
+.table th, .table td { padding:8px; border-bottom:1px solid #30363d; text-align:left; }
+.badge { padding:3px 8px; border-radius:999px; font-size:11px; }
+.badge-lunas { background:#22c55e; color:#000; }
+.badge-belum { background:#f97316; color:#000; }
+
+.btn-mini {
+  display:inline-block; padding:5px 10px; border-radius:6px; font-size:11px;
+  text-decoration:none; color:white; margin-right:4px;
+}
+.btn-mini.lunas { background:#16a34a; }
+.btn-mini.belum { background:#b91c1c; }
+
+/* Floating menu */
+.floating-menu {
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#010409;
+  border-top:1px solid #21262d;
+  display:flex;
+  justify-content:space-around;
+  padding:8px 0 10px;
+  z-index:9999;
+}
+.floating-menu a {
+  color:#ffffff;
+  text-decoration:none;
+  font-size:11px;
+  text-align:center;
+}
+.floating-menu span.emoji {
+  display:block;
+  font-size:18px;
+  margin-bottom:2px;
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="login-card">
+  <h2>Login Admin</h2>
+  <p>Masukkan password admin untuk mengakses panel.</p>
+  <label for="admin-pass">Password Admin</label>
+  <input type="password" id="admin-pass" placeholder="Password">
+  <a href="javascript:void(0)" class="btn" onclick="checkAdmin()">Login</a>
+</div>
+
+<div class="card" id="admin-card" style="display:none;">
+  <h2>Admin Panel</h2>
+  <p>Invoice & status pembayaran (disimpan di perangkat ini).</p>
+
+  <table class="table">
+    <tr>
+      <th>Invoice ID</th>
+      <th>Produk</th>
+      <th>Harga</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>
+    <tr>
+      <td id="adm-id">-</td>
+      <td id="adm-produk">-</td>
+      <td id="adm-price">-</td>
+      <td id="adm-status"><span class="badge badge-belum">Belum Bayar</span></td>
+      <td>
+        <a href="javascript:void(0)" class="btn-mini lunas" onclick="setLunas()">Set Lunas</a>
+        <a href="javascript:void(0)" class="btn-mini belum" onclick="setBelum()">Set Belum</a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="floating-menu">
+  <a href="index.html"><span class="emoji">🏠</span>Home</a>
+  <a href="order.html"><span class="emoji">📝</span>Order</a>
+  <a href="dashboard.html"><span class="emoji">📊</span>Dashboard</a>
+</div>
+
+<script>
+// SHA-256 helper using Web Crypto API
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+const ADMIN_HASH = 'f37a5e7f33e038e6550ffdc1854aeb0b1fe1b2b4f800f3e50825b0aa75b842d5'; // hash dari "Pusathosting54"
+
+async function checkAdmin(){
+  const input = document.getElementById('admin-pass').value || '';
+  const h = await sha256(input);
+  if(h === ADMIN_HASH){
+    document.getElementById('login-card').style.display = 'none';
+    document.getElementById('admin-card').style.display = 'block';
+    loadAdminData();
+  }else{
+    alert('Password salah');
+  }
+}
+
+function loadAdminData(){
+  document.getElementById('adm-id').textContent = localStorage.getItem('invoice_id') || '-';
+  document.getElementById('adm-produk').textContent = localStorage.getItem('invoice_product') || '-';
+  document.getElementById('adm-price').textContent = localStorage.getItem('invoice_price') || '-';
+  const status = localStorage.getItem('invoice_status') || 'Belum Bayar';
+  const span = document.getElementById('adm-status').querySelector('span');
+  span.textContent = status;
+  if(status === 'Sudah Bayar'){
+    span.className = 'badge badge-lunas';
+  }else{
+    span.className = 'badge badge-belum';
+  }
+}
+
+function updateHistoryStatus(newStatus){
+  const invId = localStorage.getItem('invoice_id');
+  if(!invId) return;
+  const raw = localStorage.getItem('orderHistory') || '[]';
+  let hist;
+  try { hist = JSON.parse(raw); } catch(e){ hist = []; }
+  let changed = false;
+  hist = hist.map(function(h){
+    if(h.id === invId){
+      h.status = newStatus;
+      changed = true;
+    }
+    return h;
+  });
+  if(changed){
+    localStorage.setItem('orderHistory', JSON.stringify(hist));
+  }
+}
+function setLunas(){
+  localStorage.setItem('invoice_status','Sudah Bayar');
+  updateHistoryStatus('Sudah Bayar');
+  loadAdminData();
+}
+function setBelum(){
+  localStorage.setItem('invoice_status','Belum Bayar');
+  updateHistoryStatus('Belum Bayar');
+  loadAdminData();
+}
+</script>
+
+</body>
+</html>
