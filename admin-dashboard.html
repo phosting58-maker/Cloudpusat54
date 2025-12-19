@@ -1,0 +1,43 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard</title>
+<link rel="icon" href="images/icon.png"><link rel="stylesheet" href="styles/main.css"></head><body onload="adminLoad()">
+<div class="header container"><div class="logo"><img src="images/icon.png"><div><strong>PusatHosting54</strong><div class="small">Admin Panel</div></div></div>
+<div><button class="btn" onclick="adminLogout()">Logout</button></div></div>
+<div class="container">
+  <div class="card">
+    <h3>Users</h3>
+    <table class="table" id="usersTable"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="card">
+    <h3>Invoices (All)</h3>
+    <table class="table" id="invoicesTable"><thead><tr><th>ID</th><th>User</th><th>Product</th><th>Price</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="card">
+    <h3>Orders</h3>
+    <table class="table" id="ordersTable"><thead><tr><th>ID</th><th>User</th><th>Product</th><th>Date</th><th>Action</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+<script src="scripts/scripts.js"></script>
+<script>
+function ensureAdmin(){ if(localStorage.getItem('adminLogin')!=='true') location.href='admin-login.html'; }
+ensureAdmin();
+function adminLoad(){
+  const users = JSON.parse(localStorage.getItem('users')||'[]');
+  const ut = document.querySelector('#usersTable tbody'); ut.innerHTML='';
+  users.forEach(u=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.phone}</td><td><button class='btn' onclick="impersonate('${u.id}')">Impersonate</button></td>`; ut.appendChild(tr); });
+
+  const invoices = JSON.parse(localStorage.getItem('invoices')||'[]');
+  const it = document.querySelector('#invoicesTable tbody'); it.innerHTML='';
+  invoices.forEach(inv=>{ const user = (JSON.parse(localStorage.getItem('users')||'[]').find(x=>x.id===inv.userId)||{name:'-'});
+    const tr=document.createElement('tr'); tr.innerHTML=`<td>${inv.id}</td><td>${user.name}</td><td>${inv.product}</td><td>Rp ${formatRupiah(inv.price)}</td><td>${inv.status}</td><td>${inv.status==='pending'?'<button class="btn" onclick="confirmInvoice(\''+inv.id+'\')">Confirm</button>':''}</td>`; it.appendChild(tr);
+  });
+
+  const orders = JSON.parse(localStorage.getItem('orders')||'[]');
+  const ot = document.querySelector('#ordersTable tbody'); ot.innerHTML='';
+  orders.forEach(o=>{ const user=(JSON.parse(localStorage.getItem('users')||'[]').find(x=>x.id===o.userId)||{name:'-'}); const tr=document.createElement('tr'); tr.innerHTML=`<td>${o.id}</td><td>${user.name}</td><td>${o.product}</td><td>${o.date}</td><td><button class='btn' onclick="approveOrder('${o.id}')">Approve</button></td>`; ot.appendChild(tr); });
+}
+function confirmInvoice(id){ const invoices = JSON.parse(localStorage.getItem('invoices')||'[]'); const idx=invoices.findIndex(i=>i.id===id); if(idx===-1) return alert('tidak'); invoices[idx].status='paid'; localStorage.setItem('invoices', JSON.stringify(invoices)); const services = JSON.parse(localStorage.getItem('services')||'[]'); services.push({id:'SVC'+Date.now(), userId: invoices[idx].userId, product: invoices[idx].product, active:true, expired: new Date(Date.now()+30*24*60*60*1000).toISOString().split('T')[0]}); localStorage.setItem('services', JSON.stringify(services)); alert('Invoice confirmed and service activated'); adminLoad(); }
+function approveOrder(id){ const orders = JSON.parse(localStorage.getItem('orders')||'[]'); const idx=orders.findIndex(o=>o.id===id); if(idx===-1) return; orders[idx].status='approved'; localStorage.setItem('orders', JSON.stringify(orders)); alert('Order approved'); adminLoad(); }
+function impersonate(userId){ const u = (JSON.parse(localStorage.getItem('users')||'[]').find(x=>x.id===userId)); if(!u) return; localStorage.setItem('clientLogin','true'); localStorage.setItem('clientID',u.id); localStorage.setItem('clientName',u.name); localStorage.setItem('clientEmail',u.email); alert('Impersonate: redirected to client dashboard'); location.href='dashboard.html'; }
+function adminLogout(){ localStorage.removeItem('adminLogin'); location.href='admin-login.html'; }
+</script>
+</body></html>
