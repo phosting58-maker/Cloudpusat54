@@ -1,0 +1,20 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Login</title>
+<link rel="icon" href="images/icon.png"><link rel="stylesheet" href="styles/main.css"></head><body>
+<div class="container" style="max-width:420px;margin-top:80px">
+  <div class="card">
+    <h2>Admin Login</h2>
+    <input id="adminuser" placeholder="Username" style="width:100%;padding:10px;margin:6px 0">
+    <input id="adminpass" type="password" placeholder="Password" style="width:100%;padding:10px;margin:6px 0">
+    <button class="btn" onclick="doAdminLogin()">Masuk</button>
+  </div>
+</div>
+<script src="scripts/scripts.js"></script>
+<script>
+function doAdminLogin(){
+  const u=document.getElementById('adminuser').value.trim();
+  const p=document.getElementById('adminpass').value.trim();
+  const creds = getAdminCreds();
+  if(u===creds.username && p===creds.password){ localStorage.setItem('adminLogin','true'); location.href='admin-dashboard.html'; } else alert('Salah');
+}
+</script>
+</body></html>
